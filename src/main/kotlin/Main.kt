@@ -1,9 +1,11 @@
-fun main(args: Array<String>) {
-    println("Hello World!")
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-    println("Program arguments: ${args.joinToString()}")
+suspend fun main() {
+    val consumerJob = CoroutineScope(Dispatchers.Default).launch { SimpleConsumer().testConsumer() }
+    val producerJob = CoroutineScope(Dispatchers.Default).launch { SimpleProducer().testSimpleProducer() }
 
-    SimpleProducer().testSimpleProducer()
+    consumerJob.join()
+    producerJob.join()
 }

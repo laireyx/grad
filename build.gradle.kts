@@ -17,6 +17,7 @@ dependencies {
 
     implementation(kotlin("reflect"))
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.apache.kafka:kafka-clients:3.3.1")
     implementation("org.slf4j:slf4j-simple:2.0.5")
 }
@@ -26,7 +27,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }
 
 application {

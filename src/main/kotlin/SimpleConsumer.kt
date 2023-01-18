@@ -27,7 +27,7 @@ class SimpleConsumer {
             val records = consumer.poll(Duration.ofSeconds(1))
 
             records.forEach { record ->
-                logger.info("$record")
+                logger.info("Consumer: $record")
             }
         }
     }
