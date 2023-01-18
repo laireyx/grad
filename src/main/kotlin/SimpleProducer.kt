@@ -20,15 +20,17 @@ class SimpleProducer {
         configs[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
         configs[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
 
-        val producer = KafkaProducer<String, String>(configs)
+        KafkaProducer<String, String>(configs).use { producer ->
+            val messageValue = "testMessage"
+            val record = ProducerRecord<String, String>(TOPIC_NAME, messageValue)
 
-        val messageValue = "testMessage"
-        val record = ProducerRecord<String, String>(TOPIC_NAME, messageValue)
-        producer.send(record)
+            while(true) {
+                producer.send(record)
+                logger.info("Producer: $record")
+                producer.flush()
 
-        logger.info("$record")
-
-        producer.flush()
-        producer.close()
+                Thread.sleep(1000)
+            }
+        }
     }
 }
