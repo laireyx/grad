@@ -1,11 +1,9 @@
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-suspend fun main() {
-    val consumerJob = CoroutineScope(Dispatchers.Default).launch { SimpleConsumer().testConsumer() }
-    val producerJob = CoroutineScope(Dispatchers.Default).launch { SimpleProducer().testSimpleProducer() }
-
-    consumerJob.join()
-    producerJob.join()
+suspend fun main() = runBlocking {
+    launch { SimpleConsumer().testConsumer() }
+    repeat(5) {
+        launch { SimpleProducer(it).testSimpleProducer() }
+    }
 }

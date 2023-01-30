@@ -1,4 +1,5 @@
 
+import kotlinx.coroutines.delay
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -6,13 +7,13 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class SimpleProducer {
+class SimpleProducer(private val producerNum: Int) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     // Topic name
     private val TOPIC_NAME = "test"
 
-    fun testSimpleProducer() {
+    suspend fun testSimpleProducer() {
         val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
             Properties().apply { load(it) }
         }
@@ -21,7 +22,7 @@ class SimpleProducer {
         configs[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
 
         KafkaProducer<String, String>(configs).use { producer ->
-            val messageValue = "testMessage"
+            val messageValue = "Hello Kafka! I'm $producerNum"
             val record = ProducerRecord<String, String>(TOPIC_NAME, messageValue)
 
             while(true) {
@@ -29,7 +30,7 @@ class SimpleProducer {
                 logger.info("Producer: $record")
                 producer.flush()
 
-                Thread.sleep(1000)
+                delay(1000)
             }
         }
     }
