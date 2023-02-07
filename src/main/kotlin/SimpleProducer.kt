@@ -23,8 +23,7 @@ class SimpleProducer(
     private val kafkaProducer = KafkaProducer<String, String>(configs)
 
     private fun chooseTopic(topics: Array<String>) = topics.random()
-    private suspend fun generateMessage(): String {
-        delay(producePerMillis)
+    private fun generateMessage(): String {
         val length = Random().nextInt(minLen, maxLen + 1)
         return "[$producerId]".padEnd(length, '@')
     }
@@ -35,8 +34,9 @@ class SimpleProducer(
                 val record = ProducerRecord<String, String>(chooseTopic(topics), generateMessage())
                 producer.send(record)
                 logger.info("Producer $producerId: $record")
-                producer.flush()
+                delay(producePerMillis)
             }
+            producer.flush()
         }
     }
 }
