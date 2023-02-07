@@ -18,6 +18,7 @@ class TestPlatform() {
         SimpleProducer(
             it,
             configs["producer.producePerMillis"].toString().toLong(),
+            configs["message.count"].toString().toInt(),
             configs["message.minLen"].toString().toInt(),
             configs["message.maxLen"].toString().toInt()
         )

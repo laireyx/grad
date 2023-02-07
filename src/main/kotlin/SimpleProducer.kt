@@ -9,6 +9,7 @@ import java.util.*
 class SimpleProducer(
     private val producerId: Int,
     private val producePerMillis: Long,
+    private val messageCount: Int,
     private val minLen: Int,
     private val maxLen: Int
 ) {
@@ -32,10 +33,10 @@ class SimpleProducer(
 
     suspend fun produce(topics: Array<String>) {
         kafkaProducer.use { producer ->
-            repeat(10) {
+            repeat(messageCount) {
                 val record = ProducerRecord<String, String>(chooseTopic(topics), generateMessage())
                 producer.send(record)
-                logger.info("Producer: $record")
+                logger.info("Producer $producerId: $record")
                 producer.flush()
             }
         }
