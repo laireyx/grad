@@ -9,28 +9,32 @@ class SimpleConsumer(private val consumerId: Int, topics: Array<String>) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val configs = TypedProperties("kafka").also {
-        it[ConsumerConfig.GROUP_ID_CONFIG] = "group-${System.currentTimeMillis()}"
-        it[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
-        it[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
+    private val kafkaConsumer: KafkaConsumer<String, String>
+    private val topic: List<String>
+
+    init {
+        val configs = TypedProperties("kafka").also {
+            it[ConsumerConfig.GROUP_ID_CONFIG] = "group-${System.currentTimeMillis()}"
+            it[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
+            it[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
+        }
+
+        kafkaConsumer = KafkaConsumer<String, String>(configs)
+        topic = listOf(topics[consumerId % topics.size])
     }
-
-    private val kafkaConsumer = KafkaConsumer<String, String>(configs)
-
-    private val topic = listOf(topics[consumerId % topics.size])
 
     suspend fun consume() {
         kafkaConsumer.subscribe(topic)
 
         while (true) {
-            val records = kafkaConsumer.poll(Duration.ofMillis(100))
+            kafkaConsumer.poll(Duration.ofMillis(100)).let { records ->
+                if (records.isEmpty) {
+                    logger.info("Record empty")
+                }
 
-            if (records.isEmpty) {
-                logger.info("Record empty")
-            }
-
-            records.forEach { record ->
-                logger.info("Consumer $consumerId: $record")
+                records.forEach { record ->
+                    logger.info("Consumer $consumerId: $record")
+                }
             }
 
             delay(100)
