@@ -8,6 +8,7 @@ import java.util.*
 
 class SimpleProducer(
     private val producerId: Int,
+    topics: Array<String>,
     private val producePerMillis: Long,
     private val messageCount: Int,
     private val minLen: Int,
@@ -22,16 +23,17 @@ class SimpleProducer(
 
     private val kafkaProducer = KafkaProducer<String, String>(configs)
 
-    private fun chooseTopic(topics: Array<String>) = topics.random()
+    private val topic: String = topics[producerId % topics.size]
+
     private fun generateMessage(): String {
         val length = Random().nextInt(minLen, maxLen + 1)
         return "[$producerId]".padEnd(length, '@')
     }
 
-    suspend fun produce(topics: Array<String>) {
+    suspend fun produce() {
         kafkaProducer.use { producer ->
             repeat(messageCount) {
-                val record = ProducerRecord<String, String>(chooseTopic(topics), generateMessage())
+                val record = ProducerRecord<String, String>(topic, generateMessage())
                 producer.send(record)
                 logger.info("Producer $producerId: $record")
                 delay(producePerMillis)
