@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.*
 
-class SimpleConsumer(consumerId: Int, private val consumePerSec: Int) {
+class SimpleConsumer(consumerId: Int) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -26,13 +26,17 @@ class SimpleConsumer(consumerId: Int, private val consumePerSec: Int) {
         kafkaConsumer.subscribe(chooseTopic(topics))
 
         while (true) {
-            val records = kafkaConsumer.poll(Duration.ofSeconds(1))
+            val records = kafkaConsumer.poll(Duration.ofMillis(100))
+
+            if (records.isEmpty) {
+                logger.info("Record empty")
+            }
 
             records.forEach { record ->
                 logger.info("Consumer: $record")
             }
 
-            delay(5000)
+            delay(100)
         }
     }
 }
