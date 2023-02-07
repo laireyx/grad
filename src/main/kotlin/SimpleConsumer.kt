@@ -1,3 +1,4 @@
+import kotlinx.coroutines.delay
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -12,7 +13,7 @@ class SimpleConsumer {
     private val TOPIC_NAME = "test"
     private val GROUP_ID = "test-group"
 
-    fun testConsumer() {
+    suspend fun testConsumer() {
         val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
             Properties().apply { load(it) }
         }
@@ -29,6 +30,8 @@ class SimpleConsumer {
             records.forEach { record ->
                 logger.info("Consumer: $record")
             }
+
+            delay(5000)
         }
     }
 }
