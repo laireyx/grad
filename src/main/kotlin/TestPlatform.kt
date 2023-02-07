@@ -12,13 +12,14 @@ class TestPlatform() {
     private val consumers: Array<SimpleConsumer> = Array(configs["consumer.size"].toString().toInt()) {
         SimpleConsumer(
             it,
-            configs["consumer.consumepersec"].toString().toInt()
         )
     }
     private val producers: Array<SimpleProducer> = Array(configs["producer.size"].toString().toInt()) {
         SimpleProducer(
             it,
-            configs["producer.producepersec"].toString().toInt()
+            configs["producer.producePerMillis"].toString().toLong(),
+            configs["message.minLen"].toString().toInt(),
+            configs["message.maxLen"].toString().toInt()
         )
     }
 
