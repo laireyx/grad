@@ -8,10 +8,19 @@ class TestPlatform() {
     }
 
     private val topics: Array<String> = Array(configs["topic.size"].toString().toInt()) { "topic-$it" }
-    private val partitions: Array<String> = Array(configs["partition.size"].toString().toInt()) { "partition-$it" }
 
-    private val consumers: Array<SimpleConsumer> = Array(configs["consumer.size"].toString().toInt()) { SimpleConsumer() }
-    private val producers: Array<SimpleProducer> = Array(configs["producer.size"].toString().toInt()) { SimpleProducer(it) }
+    private val consumers: Array<SimpleConsumer> = Array(configs["consumer.size"].toString().toInt()) {
+        SimpleConsumer(
+            it,
+            configs["consumer.consumepersec"].toString().toInt()
+        )
+    }
+    private val producers: Array<SimpleProducer> = Array(configs["producer.size"].toString().toInt()) {
+        SimpleProducer(
+            it,
+            configs["producer.producepersec"].toString().toInt()
+        )
+    }
 
     init {
         // TODO: initialize something
@@ -19,10 +28,10 @@ class TestPlatform() {
 
     suspend fun test() = runBlocking {
         consumers.forEach {
-            launch { it.testConsumer() }
+            launch { it.consume(topics) }
         }
         producers.forEach {
-            launch { it.testSimpleProducer() }
+            launch { it.produce(topics) }
         }
     }
 }
