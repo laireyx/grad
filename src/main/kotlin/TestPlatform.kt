@@ -12,6 +12,11 @@ class TestPlatform {
         val configs = TypedProperties("test")
 
         val testerName = configs["tester.name"] ?: "anonymous"
+        val messageFactory = MessageFactory(
+            configs["message.batchSize"],
+            configs["message.minLen"],
+            configs["message.maxLen"]
+        )
 
         // Initialize topic names
         topics = Array(configs["topic.size"]) { "topic-$testerName-$it" }
@@ -29,10 +34,8 @@ class TestPlatform {
             SimpleProducer(
                 it,
                 topics,
-                configs["message.delay"],
-                configs["message.count"],
-                configs["message.minLen"],
-                configs["message.maxLen"]
+                configs["producer.produceDelay"],
+                messageFactory
             )
         }
     }
