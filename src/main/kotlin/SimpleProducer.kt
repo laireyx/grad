@@ -1,4 +1,3 @@
-
 import kotlinx.coroutines.delay
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -7,7 +6,12 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class SimpleProducer(private val producerId: Int, private val producePerSec: Int) {
+class SimpleProducer(
+    private val producerId: Int,
+    private val producePerMillis: Long,
+    private val minLen: Int,
+    private val maxLen: Int
+) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     private val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
@@ -20,18 +24,19 @@ class SimpleProducer(private val producerId: Int, private val producePerSec: Int
     private val kafkaProducer = KafkaProducer<String, String>(configs)
 
     private fun chooseTopic(topics: Array<String>) = topics.random()
-    private fun generateMessage() = "Hello Kafka! I'm $producerId"
+    private suspend fun generateMessage(): String {
+        delay(producePerMillis)
+        val length = Random().nextInt(minLen, maxLen + 1)
+        return "[$producerId]".padEnd(length, '@')
+    }
 
     suspend fun produce(topics: Array<String>) {
         kafkaProducer.use { producer ->
-            val record = ProducerRecord<String, String>(chooseTopic(topics), generateMessage())
-
-            while(true) {
+            repeat(10) {
+                val record = ProducerRecord<String, String>(chooseTopic(topics), generateMessage())
                 producer.send(record)
                 logger.info("Producer: $record")
                 producer.flush()
-
-                delay(1000)
             }
         }
     }
