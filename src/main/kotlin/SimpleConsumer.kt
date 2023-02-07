@@ -5,7 +5,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
-class SimpleConsumer(private val consumerId: Int) {
+class SimpleConsumer(private val consumerId: Int, topics: Array<String>) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -17,10 +17,10 @@ class SimpleConsumer(private val consumerId: Int) {
 
     private val kafkaConsumer = KafkaConsumer<String, String>(configs)
 
-    private fun chooseTopic(topics: Array<String>) = listOf(topics.random())
+    private val topic = listOf(topics[consumerId % topics.size])
 
-    suspend fun consume(topics: Array<String>) {
-        kafkaConsumer.subscribe(chooseTopic(topics))
+    suspend fun consume() {
+        kafkaConsumer.subscribe(topic)
 
         while (true) {
             val records = kafkaConsumer.poll(Duration.ofMillis(100))

@@ -20,6 +20,7 @@ class TestPlatform {
         consumers = Array(configs["consumer.size"]) {
             SimpleConsumer(
                 it,
+                topics
             )
         }
 
@@ -27,6 +28,7 @@ class TestPlatform {
         producers = Array(configs["producer.size"]) {
             SimpleProducer(
                 it,
+                topics,
                 configs["message.delay"],
                 configs["message.count"],
                 configs["message.minLen"],
@@ -37,10 +39,10 @@ class TestPlatform {
 
     suspend fun test() = runBlocking {
         consumers.forEach {
-            launch { it.consume(topics) }
+            launch { it.consume() }
         }
         producers.forEach {
-            launch { it.produce(topics) }
+            launch { it.produce() }
         }
     }
 }
