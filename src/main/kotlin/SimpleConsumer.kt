@@ -6,26 +6,27 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.*
 
-class SimpleConsumer {
+class SimpleConsumer(consumerId: Int, private val consumePerSec: Int) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val TOPIC_NAME = "test"
-    private val GROUP_ID = "test-group"
+    private val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
+        Properties().apply { load(it) }
+    }.also {
+        it[ConsumerConfig.GROUP_ID_CONFIG] = "group-$consumerId"
+        it[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
+        it[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
+    }
 
-    suspend fun testConsumer() {
-        val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
-            Properties().apply { load(it) }
-        }
-        configs[ConsumerConfig.GROUP_ID_CONFIG] = GROUP_ID
-        configs[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
-        configs[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
+    private val kafkaConsumer = KafkaConsumer<String, String>(configs)
 
-        val consumer = KafkaConsumer<String, String>(configs)
-        consumer.subscribe(listOf(TOPIC_NAME))
+    private fun chooseTopic(topics: Array<String>) = listOf(topics.random())
+
+    suspend fun consume(topics: Array<String>) {
+        kafkaConsumer.subscribe(chooseTopic(topics))
 
         while (true) {
-            val records = consumer.poll(Duration.ofSeconds(1))
+            val records = kafkaConsumer.poll(Duration.ofSeconds(1))
 
             records.forEach { record ->
                 logger.info("Consumer: $record")

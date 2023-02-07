@@ -7,23 +7,24 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class SimpleProducer(private val producerNum: Int) {
+class SimpleProducer(private val producerId: Int, private val producePerSec: Int) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    // Topic name
-    private val TOPIC_NAME = "test"
+    private val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
+        Properties().apply { load(it) }
+    }.also {
+        it[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
+        it[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
+    }
 
-    suspend fun testSimpleProducer() {
-        val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
-            Properties().apply { load(it) }
-        }
-        // Serialize / Deserialize logic
-        configs[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
-        configs[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
+    private val kafkaProducer = KafkaProducer<String, String>(configs)
 
-        KafkaProducer<String, String>(configs).use { producer ->
-            val messageValue = "Hello Kafka! I'm $producerNum"
-            val record = ProducerRecord<String, String>(TOPIC_NAME, messageValue)
+    private fun chooseTopic(topics: Array<String>) = topics.random()
+    private fun generateMessage() = "Hello Kafka! I'm $producerId"
+
+    suspend fun produce(topics: Array<String>) {
+        kafkaProducer.use { producer ->
+            val record = ProducerRecord<String, String>(chooseTopic(topics), generateMessage())
 
             while(true) {
                 producer.send(record)
