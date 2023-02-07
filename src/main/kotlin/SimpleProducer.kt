@@ -15,9 +15,7 @@ class SimpleProducer(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
-        Properties().apply { load(it) }
-    }.also {
+    private val configs = TypedProperties("kafka").also {
         it[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
         it[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java.name
     }

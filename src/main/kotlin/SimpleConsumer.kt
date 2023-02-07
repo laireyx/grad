@@ -4,15 +4,12 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.util.*
 
 class SimpleConsumer(private val consumerId: Int) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val configs = javaClass.classLoader.getResourceAsStream("kafka.properties").use {
-        Properties().apply { load(it) }
-    }.also {
+    private val configs = TypedProperties("kafka").also {
         it[ConsumerConfig.GROUP_ID_CONFIG] = "group-${System.currentTimeMillis()}"
         it[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
         it[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
