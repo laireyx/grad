@@ -1,31 +1,38 @@
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.*
 
-class TestPlatform() {
-    private val configs = javaClass.classLoader.getResourceAsStream("test.properties").use {
-        Properties().apply { load(it) }
-    }
+class TestPlatform {
 
-    private val topics: Array<String> = Array(configs["topic.size"].toString().toInt()) { "topic-$it" }
+    private val topics: Array<String>
 
-    private val consumers: Array<SimpleConsumer> = Array(configs["consumer.size"].toString().toInt()) {
-        SimpleConsumer(
-            it,
-        )
-    }
-    private val producers: Array<SimpleProducer> = Array(configs["producer.size"].toString().toInt()) {
-        SimpleProducer(
-            it,
-            configs["producer.producePerMillis"].toString().toLong(),
-            configs["message.count"].toString().toInt(),
-            configs["message.minLen"].toString().toInt(),
-            configs["message.maxLen"].toString().toInt()
-        )
-    }
+    private val consumers: Array<SimpleConsumer>
+    private val producers: Array<SimpleProducer>
 
     init {
-        // TODO: initialize something
+        val configs = TypedProperties("test")
+
+        val testerName = configs["tester.name"] ?: "anonymous"
+
+        // Initialize topic names
+        topics = Array(configs["topic.size"]) { "topic-$testerName-$it" }
+
+        // Initialize consumers
+        consumers = Array(configs["consumer.size"]) {
+            SimpleConsumer(
+                it,
+            )
+        }
+
+        // Initialize producers
+        producers = Array(configs["producer.size"]) {
+            SimpleProducer(
+                it,
+                configs["producer.producePerMillis"],
+                configs["message.count"],
+                configs["message.minLen"],
+                configs["message.maxLen"]
+            )
+        }
     }
 
     suspend fun test() = runBlocking {
