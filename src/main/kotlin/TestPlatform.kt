@@ -27,7 +27,7 @@ class TestPlatform {
         producers = Array(configs["producer.size"]) {
             SimpleProducer(
                 it,
-                configs["producer.producePerMillis"],
+                configs["message.delay"],
                 configs["message.count"],
                 configs["message.minLen"],
                 configs["message.maxLen"]
