@@ -35,7 +35,8 @@ class TestPlatform {
                 it,
                 topics,
                 configs["producer.produceDelay"],
-                messageFactory
+                messageFactory,
+                configs["partition.size"]
             )
         }
     }

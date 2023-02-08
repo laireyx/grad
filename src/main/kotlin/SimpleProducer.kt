@@ -4,12 +4,14 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
+import java.util.*
 
 class SimpleProducer(
     private val producerId: Int,
     topics: Array<String>,
     private val produceDelay: Long,
-    private val messageFactory: MessageFactory
+    private val messageFactory: MessageFactory,
+    private val partitionSize: Int
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -30,13 +32,19 @@ class SimpleProducer(
         kafkaProducer.use { producer ->
             messageFactory
                 .generate("$producerId")
-                .map { ProducerRecord<String, String>(topic, it) }
+                .map {
+                    ProducerRecord<String, String>(
+                        topic,
+                        Random().nextInt(partitionSize),
+                        "${UUID.randomUUID()}",
+                        it
+                    )
+                }
                 .forEach {record ->
                     producer.send(record)
                     logger.info("Producer $producerId: $record")
                     delay(produceDelay)
             }
-
             producer.flush()
         }
     }
