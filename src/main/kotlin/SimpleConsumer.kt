@@ -5,7 +5,12 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
-class SimpleConsumer(private val consumerId: Int, topics: Array<String>) {
+class SimpleConsumer(
+    private val consumerId: Int,
+    private val maximumInterval: Long,
+    private val retryIfEmpty: Int,
+    topics: Array<String>
+) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -26,18 +31,26 @@ class SimpleConsumer(private val consumerId: Int, topics: Array<String>) {
     suspend fun consume() {
         kafkaConsumer.subscribe(topic)
 
-        while (true) {
-            kafkaConsumer.poll(Duration.ofMillis(100)).let { records ->
+        var interval: Long = 100
+        var retryCnt = 0
+
+        while (retryCnt != retryIfEmpty) {
+            kafkaConsumer.poll(Duration.ofMillis(interval)).let { records ->
                 if (records.isEmpty) {
-                    logger.info("Record empty")
+                    if (interval == maximumInterval) {
+                        retryCnt++
+                    } else {
+                        interval = (interval * 2).coerceAtMost(maximumInterval)
+                    }
+                } else {
+                    retryCnt = 0
+                    interval = (interval / 2).coerceAtLeast(100)
                 }
 
-                records.forEach { record ->
-                    logger.info("Consumer $consumerId: $record")
-                }
+                logger.info("Consumer $consumerId: polling [$interval]ms and got [${records.count()}] records.")
             }
 
-            delay(100)
+            delay(interval)
         }
     }
 }

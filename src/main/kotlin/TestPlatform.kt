@@ -13,7 +13,6 @@ class TestPlatform {
 
         val testerName = configs["tester.name"] ?: "anonymous"
         val messageFactory = MessageFactory(
-            configs["message.batchSize"],
             configs["message.minLen"],
             configs["message.maxLen"]
         )
@@ -25,6 +24,8 @@ class TestPlatform {
         consumers = Array(configs["consumer.size"]) {
             SimpleConsumer(
                 it,
+                configs["consumer.maximumInterval"],
+                configs["consumer.retryIfEmpty"],
                 topics
             )
         }
@@ -34,7 +35,8 @@ class TestPlatform {
             SimpleProducer(
                 it,
                 topics,
-                configs["producer.produceDelay"],
+                configs["producer.producePerSec"],
+                configs["producer.produceCount"],
                 messageFactory,
                 configs["partition.size"]
             )

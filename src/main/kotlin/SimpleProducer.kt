@@ -5,11 +5,14 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.DurationUnit
 
 class SimpleProducer(
     private val producerId: Int,
     topics: Array<String>,
-    private val produceDelay: Long,
+    private val producePerSec: Int,
+    private val produceCount: Int,
     private val messageFactory: MessageFactory,
     private val partitionSize: Int
 ) {
@@ -29,23 +32,50 @@ class SimpleProducer(
     }
 
     suspend fun produce() {
+        var remainingCount = produceCount
+        var producePerStep = producePerSec
+        val startTime = System.nanoTime()
+
         kafkaProducer.use { producer ->
-            messageFactory
-                .generate("$producerId")
-                .map {
-                    ProducerRecord<String, String>(
-                        topic,
-                        Random().nextInt(partitionSize),
-                        "${UUID.randomUUID()}",
-                        it
-                    )
+            while(remainingCount > 0) {
+
+                // Create {produceCount} messages in each step
+                remainingCount -= producePerStep
+
+                messageFactory
+                    .generate("$producerId", producePerStep)
+                    .map {
+                        ProducerRecord<String, String>(
+                            topic,
+                            Random().nextInt(partitionSize),
+                            "${UUID.randomUUID()}",
+                            it
+                        )
+                    }
+                    .forEach { record ->
+                        producer.send(record)
+                    }
+                producer.flush()
+
+                val duration = (System.nanoTime() - startTime).nanoseconds
+                val durationInMs = duration.toLong(DurationUnit.MILLISECONDS)
+
+                val itShouldTake = 1000 * (produceCount - remainingCount) / producePerSec
+
+                if (durationInMs < itShouldTake) {
+                    delay(itShouldTake - durationInMs)
+                    producePerStep = (producePerStep / 2).coerceAtLeast(1)
+                } else {
+                    if(durationInMs > itShouldTake * 2) {
+                        producePerStep *= 2
+                    } else {
+                        producePerStep += (producePerStep / 10).coerceAtLeast(1)
+                    }
                 }
-                .forEach {record ->
-                    producer.send(record)
-                    logger.info("Producer $producerId: $record")
-                    delay(produceDelay)
+
+                logger.info("Producer $producerId: produce [${produceCount - remainingCount}/$produceCount] messages in [$durationInMs] ms.")
+                delay(1)
             }
-            producer.flush()
         }
     }
 }
