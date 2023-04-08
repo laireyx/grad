@@ -1,3 +1,8 @@
+package test
+
+import SimpleConsumer
+import SimpleProducer
+import TypedProperties
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -12,10 +17,6 @@ class TestPlatform {
         val configs = TypedProperties("test")
 
         val testerName = configs["tester.name"] ?: "anonymous"
-        val messageFactory = MessageFactory(
-            configs["message.minLen"],
-            configs["message.maxLen"]
-        )
 
         // Initialize topic names
         topics = Array(configs["topic.size"]) { "topic-$testerName-$it" }
@@ -35,9 +36,6 @@ class TestPlatform {
             SimpleProducer(
                 it,
                 topics,
-                configs["producer.producePerSec"],
-                configs["producer.produceCount"],
-                messageFactory,
                 configs["partition.size"]
             )
         }
@@ -48,7 +46,7 @@ class TestPlatform {
             launch { it.consume() }
         }
         producers.forEach {
-            launch { it.produce() }
+            launch { it.runScenario() }
         }
     }
 }
