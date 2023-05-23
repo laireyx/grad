@@ -1,11 +1,9 @@
 package event
 
-import TypedProperties
+import utils.PropertyHolder
 import kotlin.random.Random
 
-class SimpleEvent(eventType: String) {
-    private val configs = TypedProperties("events/$eventType")
-
+class SimpleEvent(eventType: String) : PropertyHolder("events", eventType) {
     private val eventName: String = configs["event.name"]
 
     private val minimumMessageNumber: Int = configs["message.number.min"]

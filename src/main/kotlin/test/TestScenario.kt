@@ -1,16 +1,14 @@
 package test
 
-import TypedProperties
 import event.SimpleEvent
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
+import utils.PropertyHolder
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.DurationUnit
 
-class TestScenario(scenarioType: String) {
+class TestScenario(scenarioType: String) : PropertyHolder("scenarios", scenarioType) {
     private val logger = LoggerFactory.getLogger(this::class.java)
-
-    private val configs = TypedProperties("scenarios/$scenarioType")
 
     private val scenarioName: String = configs["scenario.name"]
 

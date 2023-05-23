@@ -1,12 +1,12 @@
 package test
 
-import TypedProperties
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import model.SimpleConsumer
 import model.SimpleProducer
+import utils.PropertyHolder
 
-class TestPlatform {
+class TestPlatform : PropertyHolder("test") {
 
     private val topics: Array<String>
 
@@ -14,8 +14,6 @@ class TestPlatform {
     private val producers: Array<SimpleProducer>
 
     init {
-        val configs = TypedProperties("test")
-
         val testerName = configs["tester.name"] ?: "anonymous"
 
         // Initialize topic names
