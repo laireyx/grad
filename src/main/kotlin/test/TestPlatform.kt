@@ -1,10 +1,10 @@
 package test
 
-import SimpleConsumer
-import SimpleProducer
 import TypedProperties
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import model.SimpleConsumer
+import model.SimpleProducer
 
 class TestPlatform {
 
@@ -46,7 +46,12 @@ class TestPlatform {
             launch { it.consume() }
         }
         producers.forEach {
-            launch { it.runScenario() }
+            launch { testProducer(it) }
         }
+    }
+
+    private suspend fun testProducer(producer: SimpleProducer, scenarioType: String = "basic") = runBlocking {
+        val testScenario = TestScenario(scenarioType)
+        producer.runScenario(testScenario)
     }
 }

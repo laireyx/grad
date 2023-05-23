@@ -13,7 +13,7 @@ class SimpleEvent(eventType: String) {
 
     private val messageTypes: Array<String> = configs["message.type[]"]
 
-    fun fire() = Array(Random.nextInt(minimumMessageNumber, maximumMessageNumber)) {
+    fun fireMessages() = Array(Random.nextInt(minimumMessageNumber, maximumMessageNumber)) {
         val messageType = messageTypes.random()
         Message(messageType, eventName)
     }

@@ -1,7 +1,12 @@
+package model
+
+import TypedProperties
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import test.TestScenario
+import java.util.*
 
 class SimpleProducer(
     producerId: Int,
@@ -22,9 +27,23 @@ class SimpleProducer(
         topic = topics[producerId % topics.size]
     }
 
-    suspend fun runScenario() {
-        val scenario = TestScenario("basic")
+    suspend fun runScenario(scenario: TestScenario) {
+        while (!scenario.isEnd) {
+            val event = scenario.nextEvent()
+            val firedMessages = event.fireMessages()
 
-        scenario.run(kafkaProducer, topic, partitionSize)
+            firedMessages.asSequence().map {
+                ProducerRecord(
+                    topic,
+                    Random().nextInt(partitionSize),
+                    "${UUID.randomUUID()}",
+                    it.body
+                )
+            }.forEach {
+                kafkaProducer.send(it)
+            }
+
+            kafkaProducer.flush()
+        }
     }
 }
