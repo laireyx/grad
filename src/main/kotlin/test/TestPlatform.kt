@@ -13,8 +13,6 @@ class TestPlatform : PropertyHolder("test") {
     private val consumers: Array<SimpleConsumer>
     private val producers: Array<SimpleProducer>
 
-    private val scenarioType: String
-
     init {
         val testerName = configs["tester.name"] ?: "anonymous"
 
@@ -39,9 +37,6 @@ class TestPlatform : PropertyHolder("test") {
                 configs["partition.size"]
             )
         }
-
-        // Initialize Scenario
-        scenarioType = configs["scenario.type"] ?: "basic"
     }
 
     suspend fun test() = runBlocking {
@@ -54,7 +49,7 @@ class TestPlatform : PropertyHolder("test") {
     }
 
     private suspend fun testProducer(producer: SimpleProducer) = runBlocking {
-        val testScenario = TestScenario(scenarioType)
+        val testScenario = BasicScenario()
         producer.runScenario(testScenario)
     }
 }
