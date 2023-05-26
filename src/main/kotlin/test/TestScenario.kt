@@ -28,12 +28,12 @@ class TestScenario(scenarioType: String) : PropertyHolder("scenarios", scenarioT
             return remainingCount < 0
         }
 
-    suspend fun nextEvent(): SimpleEvent {
+    suspend fun nextEvents(): Array<SimpleEvent> {
         adjustThroughput()
         // Create {produceCount} messages in each step
         remainingCount -= producePerStep
 
-        return SimpleEvent(eventTypes.random())
+        return Array(producePerStep) { _ -> SimpleEvent(eventTypes.random()) }
     }
 
     private suspend fun adjustThroughput() {

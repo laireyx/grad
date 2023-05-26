@@ -29,20 +29,21 @@ class SimpleProducer(
 
     suspend fun runScenario(scenario: TestScenario) {
         while (!scenario.isEnd) {
-            val event = scenario.nextEvent()
-            val firedMessages = event.fireMessages()
+            val events = scenario.nextEvents()
+            events.forEach{ event ->
+                val firedMessages = event.fireMessages()
 
-            firedMessages.asSequence().map {
-                ProducerRecord(
-                    topic,
-                    Random().nextInt(partitionSize),
-                    "${UUID.randomUUID()}",
-                    it.body
-                )
-            }.forEach {
-                kafkaProducer.send(it)
+                firedMessages.asSequence().map {
+                    ProducerRecord(
+                        topic,
+                        Random().nextInt(partitionSize),
+                        "${UUID.randomUUID()}",
+                        it.body
+                    )
+                }.forEach {
+                    kafkaProducer.send(it)
+                }
             }
-
             kafkaProducer.flush()
         }
     }
